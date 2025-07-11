@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>あっちむいてホイゲーム</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      text-align: center;
+      padding: 20px;
+      background-color: #000;
+      color: #f00;
+    }
+    h1, p {
+      font-size: 28px;
+    }
+    .btn-group button, .direction-buttons button, #retry-button {
+      margin: 10px;
+      padding: 16px 30px;
+      font-size: 20px;
+      cursor: pointer;
+      background-color: #222;
+      color: #f00;
+      border: 2px solid #f00;
+      border-radius: 8px;
+    }
+    .result {
+      font-size: 24px;
+      margin-top: 20px;
+      white-space: pre-line;
+    }
+    .direction-buttons {
+      display: none;
+      margin-top: 30px;
+    }
+    .images {
+      margin-top: 20px;
+    }
+    .images img {
+      width: 120px;
+      height: 120px;
+      margin: 0 10px;
+    }
+    #versus-screen {
+      display: none;
+      font-size: 36px;
+      margin-top: 40px;
+    }
+    #countdown {
+      font-size: 48px;
+      margin-top: 10px;
+    }
+    #effect {
+      display: none;
+      font-size: 36px;
+      margin-top: 20px;
+    }
+    .negative {
+      color: #880000;
+      animation: flicker 1s infinite;
+    }
+    @keyframes flicker {
+      0% { opacity: 1; }
+      50% { opacity: 0.3; }
+      100% { opacity: 1; }
+    }
+    @media (max-width: 600px) {
+      h1, p, .result { font-size: 20px; }
+      .btn-group button, .direction-buttons button, #retry-button {
+        padding: 12px 20px;
+        font-size: 16px;
+      }
+      .images img {
+        width: 80px;
+        height: 80px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <h1>あっちむいてホイ！</h1>
+  <p>どちらを選びますか？</p>
+  <div class="btn-group">
+    <button onclick="selectRole('attacker')">ほいする側</button>
+    <button onclick="selectRole('defender')">ほいされる側</button>
+  </div>
+
+  <div id="direction-buttons" class="direction-buttons">
+    <p>方向を選んでください：</p>
+    <button onclick="play('up')">↑ 上</button>
+    <button onclick="play('down')">↓ 下</button>
+    <button onclick="play('left')">← 左</button>
+    <button onclick="play('right')">→ 右</button>
+  </div>
+
+  <div id="versus-screen">
+    <p>勝ったのは～？</p>
+    <div id="countdown">3</div>
+  </div>
+
+  <div class="result" id="result"></div>
+  <div class="images" id="image-display"></div>
+  <div id="effect"></div>
+  <button onclick="resetGame()" id="retry-button" style="display:none;">再戦</button>
+
+  <script>
+    let role = null;
+    const directions = ['up', 'down', 'left', 'right'];
+
+    function getImage(direction, type) {
+      return `images/${type}_${direction}.png`;
+    }
+
+    function selectRole(selectedRole) {
+      role = selectedRole;
+      document.querySelector('.btn-group').style.display = 'none';
+      document.getElementById('direction-buttons').style.display = 'block';
+      document.getElementById('result').textContent = '';
+      document.getElementById('image-display').innerHTML = '';
+      document.getElementById('effect').style.display = 'none';
+      document.getElementById('versus-screen').style.display = 'none';
+    }
+
+    function play(playerDirection) {
+      const opponentDirection = directions[Math.floor(Math.random() * 4)];
+      let result = '';
+
+      if (role === 'attacker') {
+        result = (playerDirection === opponentDirection) ? 'you win' : 'you lose';
+      } else {
+        result = (playerDirection === opponentDirection) ? 'you lose' : 'you win';
+      }
+
+      document.getElementById('direction-buttons').style.display = 'none';
+      document.getElementById('versus-screen').style.display = 'block';
+
+      let count = 2;
+      const countdownEl = document.getElementById('countdown');
+      countdownEl.textContent = count;
+      const timer = setInterval(() => {
+        count--;
+        if (count <= 0) {
+          clearInterval(timer);
+          document.getElementById('versus-screen').style.display = 'none';
+
+          const resultText = `${result.toUpperCase()}\nあなた: ${playerDirection}\n相手: ${opponentDirection}`;
+          document.getElementById('result').textContent = resultText;
+
+          const opponentImage = role === 'attacker'
+            ? getImage(opponentDirection, 'face')
+            : getImage(opponentDirection, 'point');
+
+          document.getElementById('image-display').innerHTML = `
+            <img src="${opponentImage}" alt="相手の画像">
+          `;
+
+          const effect = document.getElementById('effect');
+          if (result === 'you win') {
+            effect.textContent = '🎉 勝利！ 🎉';
+            effect.className = '';
+          } else {
+            effect.textContent = '💀 敗北... 💀';
+            effect.className = 'negative';
+          }
+          effect.style.display = 'block';
+          document.getElementById('retry-button').style.display = 'inline-block';
+        } else {
+          countdownEl.textContent = count;
+        }
+      }, 1000);
+    }
+
+    function resetGame() {
+      document.getElementById('direction-buttons').style.display = 'block';
+      document.getElementById('result').textContent = '';
+      document.getElementById('image-display').innerHTML = '';
+      document.getElementById('effect').style.display = 'none';
+      document.getElementById('versus-screen').style.display = 'none';
+      document.getElementById('retry-button').style.display = 'none';
+    }
+  </script>
+</body>
+</html>
